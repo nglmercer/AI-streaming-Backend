@@ -79,7 +79,6 @@ router.post('/base64', async (c) => {
 router.post('/float32array', async (c) => {
   try {
     const { audio, sampleRate } = await c.req.json();
-
     if (!Array.isArray(audio)) {
       return c.text('Invalid audio data: must be an array', 400);
     }

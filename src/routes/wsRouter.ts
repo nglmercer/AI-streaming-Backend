@@ -2,7 +2,7 @@
 
 import type { Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket, type RawData } from 'ws';
-import { textResponse,streamResponse } from './wshandler/inputMSG.js'; // Asumimos que este archivo existe y exporta la función
+import { textResponse,streamResponse } from './wshandler/ai_response.js'; // Asumimos que este archivo existe y exporta la función
 import { parseClientMessage, sendMessage } from '../ws/wsUtils.js';
 import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../ws/types.ts';
 import { textToSpeech,processAudioChunkToBase64 } from './wshandler/speechTTS.js';
@@ -44,7 +44,7 @@ export default function createWsRouter(httpServer: HttpServer) {
             
             for await (const payload of streamPayload) {
               sendMessage(ws, 'full-text', payload, message.requestId);
-              const resultTTS = await textToSpeech(payload,'ca-ES-JoanaNeural',{
+              const resultTTS = await textToSpeech(payload,'es-PE-CamilaNeural',{
                 'format': 'audio-24khz-48kbitrate-mono-mp3',
               })
               sendMessage(ws,'audio',{

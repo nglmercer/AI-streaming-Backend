@@ -2,6 +2,7 @@ import { type sendInputEvent } from "./ws_model.js";
 import { buildModel } from "../../ai/factory.js";
 import { generateText } from 'ai';
 import { streamText } from 'ai';
+import { miliPrompt } from "../../prompts/promptGenerator.js";
 async function textResponse(msg: sendInputEvent) {
     if (!msg.text) return;
     // Handle the input event here
@@ -25,6 +26,7 @@ async function streamResponse(msg: sendInputEvent) {
         const model = buildModel({provider: 'google', model: 'gemini-2.5-flash', apiKey: process.env.GEMINI_API_KEY});
         const { textStream } = streamText({
             model,
+            system: miliPrompt,
             prompt: msg.text,
         });
         return textStream;
