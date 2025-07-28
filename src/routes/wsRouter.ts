@@ -2,7 +2,7 @@
 
 import type { Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket, type RawData } from 'ws';
-import { handleInputEvent } from './wshandler/inputMSG.js'; // Asumimos que este archivo existe y exporta la función
+import { textResponse,streamResponse } from './wshandler/inputMSG.js'; // Asumimos que este archivo existe y exporta la función
 import { parseClientMessage, sendMessage } from '../ws/wsUtils.js';
 import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../ws/types.ts';
 import { textToSpeech,processAudioChunkToBase64 } from './wshandler/speechTTS.js';
@@ -39,28 +39,19 @@ export default function createWsRouter(httpServer: HttpServer) {
           try {
             if (!message.text) return;
             const inputEvent: InputEvent = { type: 'text-input', text: message.text };
-            const responsePayload = await handleInputEvent(inputEvent);
-
-            console.log('⬅️ Enviando respuesta "full-text"');
+            const streamPayload = await streamResponse(inputEvent);
+            if (!streamPayload) return;
             
-            // 5. Enviamos la respuesta usando nuestra utilidad.
-            //    Si el cliente envió un `requestId`, lo incluimos en la respuesta
-            //    para que pueda identificarla. Esto reemplaza el patrón request/resolve.
-            if (!responsePayload) return;
-            sendMessage(ws, 'full-text', responsePayload, message.requestId);
-            const resultTTS = await textToSpeech(responsePayload,'ca-ES-JoanaNeural',{
-              'format': 'audio-24khz-48kbitrate-mono-mp3',
-              cb: (data: RawData) => {
-                 sendMessage(ws,'audio',{
-                  audio: processAudioChunkToBase64(data),
-                  type: 'audio'
-                }) 
-              }
-            } )
-/*             sendMessage(ws,'audio',{
-              audio:resultTTS.toBase64(),
-              type: 'audio'
-            }) */
+            for await (const payload of streamPayload) {
+              sendMessage(ws, 'full-text', payload, message.requestId);
+              const resultTTS = await textToSpeech(payload,'ca-ES-JoanaNeural',{
+                'format': 'audio-24khz-48kbitrate-mono-mp3',
+              })
+              sendMessage(ws,'audio',{
+                audio:resultTTS.toBase64(),
+                type: 'audio'
+              })
+            }
           } catch (error: any) {
             console.error(`❌ Error procesando "${message.type}":`, error);
             
