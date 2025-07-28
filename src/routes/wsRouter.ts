@@ -1,11 +1,11 @@
 // routes/wsRouter.ts
 
 import type { Server as HttpServer } from 'http';
-import { WebSocketServer, WebSocket } from 'ws';
+import { WebSocketServer, WebSocket, type RawData } from 'ws';
 import { handleInputEvent } from './wshandler/inputMSG.js'; // Asumimos que este archivo existe y exporta la función
 import { parseClientMessage, sendMessage } from '../ws/wsUtils.js';
-import type { InputEvent } from '../ws/types.ts';
-
+import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../ws/types.ts';
+import { textToSpeech,processAudioChunkToBase64 } from './wshandler/speechTTS.js';
 /**
  * Crea y adjunta un servidor WebSocket nativo al servidor HTTP.
  * @param httpServer La instancia del servidor HTTP de Node.js
@@ -22,17 +22,19 @@ export default function createWsRouter(httpServer: HttpServer) {
     // 3. Escuchamos el evento 'message' para todos los mensajes entrantes.
     //    Nosotros nos encargamos del enrutamiento basado en el contenido.
     ws.on('message', async (rawData) => {
-      const message = parseClientMessage(rawData);
+      const clientMessage  = parseClientMessage(rawData);
 
       // Si el mensaje no tiene el formato esperado, lo ignoramos.
-      if (!message) {
-        sendMessage(ws, 'error', 'Formato de mensaje inválido.');
-        return;
-      }
+   if (!clientMessage) {
+      // Si el mensaje es inválido, enviar un error
+      sendMessage(ws, 'error', { message: 'Formato de mensaje inválido.' });
+      return;
+    }
 
       // 4. Enrutamos manualmente basado en la propiedad `type`.
-      switch (message.type) {
+      switch (clientMessage.type) {
         case 'text-input':
+          const message = clientMessage as InputEventWs;
           console.log(`➡️ Evento "${message.type}" recibido con payload:`, message.text);
           try {
             if (!message.text) return;
@@ -44,8 +46,21 @@ export default function createWsRouter(httpServer: HttpServer) {
             // 5. Enviamos la respuesta usando nuestra utilidad.
             //    Si el cliente envió un `requestId`, lo incluimos en la respuesta
             //    para que pueda identificarla. Esto reemplaza el patrón request/resolve.
+            if (!responsePayload) return;
             sendMessage(ws, 'full-text', responsePayload, message.requestId);
-
+            const resultTTS = await textToSpeech(responsePayload,'ca-ES-JoanaNeural',{
+              'format': 'audio-24khz-48kbitrate-mono-mp3',
+              cb: (data: RawData) => {
+                 sendMessage(ws,'audio',{
+                  audio: processAudioChunkToBase64(data),
+                  type: 'audio'
+                }) 
+              }
+            } )
+/*             sendMessage(ws,'audio',{
+              audio:resultTTS.toBase64(),
+              type: 'audio'
+            }) */
           } catch (error: any) {
             console.error(`❌ Error procesando "${message.type}":`, error);
             
@@ -61,13 +76,7 @@ export default function createWsRouter(httpServer: HttpServer) {
           break;
 
         default:
-          console.warn(`⚠️ Evento desconocido recibido: "${message.type}"`);
-          sendMessage(
-            ws,
-            'error',
-            `Evento '${message.type}' no soportado.`,
-            message.requestId
-          );
+          console.log('❌ Evento desconocido recibido:', clientMessage);
       }
     });
 

@@ -11,7 +11,6 @@ export interface ClientMessage<T = any> {
   payload: T;
   /** Un ID opcional para que el servidor pueda responder a una petición específica. */
   requestId?: string;
-  
 }
 
 /**
@@ -51,4 +50,3 @@ export interface InputEvent {
   type: 'text-input';
   text: string;
 }
-export type InputEventWs = ClientMessage<{ text: string }> & InputEvent;
