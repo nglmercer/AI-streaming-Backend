@@ -7,7 +7,7 @@ import exactConfig from './characters/exact.json' with { type: 'json' };
 // Function to replace placeholders in the template
 function generatePrompt(template:{template: string}, config:{[key: string]: string}, humanName = 'User') {
   let prompt = template.template;
-  Object.keys(config).forEach(key => {
+  Object.keys(config).forEach( async key => {
     prompt = prompt.replace(`{${key}}`, config[key]);
   });
   prompt = prompt.replace('{human_name}', humanName);
@@ -16,14 +16,21 @@ function generatePrompt(template:{template: string}, config:{[key: string]: stri
 }
 
 // Example usage for Mili
-export const miliPrompt = generatePrompt(basePrompt, miliConfig);
+const miliPrompt = generatePrompt(basePrompt, miliConfig);
 
 // Example for group conversation
-export function generateGroupPrompt(humanName: string, otherAIs: string[]) {
+function generateGroupPrompt(humanName: string, otherAIs: string[]) {
   const groupIntro = `In a group chat with ${humanName} and AIs: ${otherAIs.join(', ')}. `;
   return groupIntro + generatePrompt(basePrompt, miliConfig, humanName);
 }
-export const lunaPrompt = generatePrompt(basePrompt, lunaConfig);
-export const exacPrompt = generatePrompt(basePrompt, exactConfig);
+const lunaPrompt = generatePrompt(basePrompt, lunaConfig);
+const exacPrompt = generatePrompt(basePrompt, exactConfig);
+
+export const charactersPrompt = {
+  lunaPrompt,
+  exacPrompt,
+  miliPrompt,
+  generateGroupPrompt
+}
 console.log("lunaPrompt", lunaPrompt);
 console.log("miliPrompt", miliPrompt);

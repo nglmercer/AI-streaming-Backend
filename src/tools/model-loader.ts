@@ -151,7 +151,7 @@ export async function getMotions(modelName: string): Promise<Map<string, string[
  */
 export async function getAllExpressions(modelName: string): Promise<string[] | undefined> {
   const model = await getExpressions(modelName);
-  if (!model) return;
+  if (!model) return [];
 
   return Array.from(model.keys());
 }
@@ -163,7 +163,7 @@ export async function getAllExpressions(modelName: string): Promise<string[] | u
  */
 export async function getAllMotions(modelName: string): Promise<string[] | undefined> {
   const model = await getMotions(modelName);
-  if (!model) return;
+  if (!model) return [];
 
   return Array.from(model.keys());
 }

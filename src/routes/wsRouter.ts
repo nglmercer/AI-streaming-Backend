@@ -2,10 +2,11 @@
 
 import type { Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket, type RawData } from 'ws';
-import { textResponse,streamResponse,memory } from './wshandler/ai_response.js'; // Asumimos que este archivo existe y exporta la función
+import { textResponse,streamResponse,memory } from '../ai/ai_response.js'; // Asumimos que este archivo existe y exporta la función
 import { parseClientMessage, sendMessage } from '../ws/wsUtils.js';
 import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../ws/types.ts';
 import { textToSpeech,processAudioChunkToBase64 } from './wshandler/speechTTS.js';
+import { cleanTextAndGetRemovedValues } from '../tools/cleantext.js';
 /**
  * Crea y adjunta un servidor WebSocket nativo al servidor HTTP.
  * @param httpServer La instancia del servidor HTTP de Node.js
@@ -46,17 +47,21 @@ export default function createWsRouter(httpServer: HttpServer) {
             for await (const payload of streamPayload) {
               full_text += payload;
               sendMessage(ws, 'full-text', payload, message.requestId);
-              const resultTTS = await textToSpeech(payload,'es-PE-CamilaNeural',{
+              if (!payload || payload.length <= 2) continue;
+              const {cleanedText, removedValues} = await cleanTextAndGetRemovedValues(payload);
+              const resultTTS = await textToSpeech(cleanedText,'es-PE-CamilaNeural',{
                 'format': 'audio-24khz-48kbitrate-mono-mp3',
               })
               sendMessage(ws,'audio',{
                 audio:resultTTS.toBase64(),
                 type: 'audio',
-                text: payload
+                text: payload,
+                payload:removedValues
               })
             }
             memory.addUserMessage(message.text);
             memory.addAIMessage(full_text);
+            console.log("full_text",full_text)
           } catch (error: any) {
             console.error(`❌ Error procesando "${message.type}":`, error);
             
