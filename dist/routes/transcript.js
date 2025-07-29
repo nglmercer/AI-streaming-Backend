@@ -1,7 +1,6 @@
 import { Hono } from 'hono';
 import { Mistral } from '@mistralai/mistralai';
-import { MISTRAL_API_KEY } from '../constants.js';
-const client = new Mistral({ apiKey: MISTRAL_API_KEY });
+const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
 const router = new Hono();
 async function transcribeAudio(audioBuffer) {
     const audioBase64 = audioBuffer.toString('base64');
