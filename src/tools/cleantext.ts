@@ -1,11 +1,11 @@
 import { getExpressions,getMotions } from "./model-loader.js";
 const defaultModel = 'shizuku';
-interface RemovedValue {
-    value: string;
-    position: number;
-    cleanValue: string;
-    type?: 'expression' | 'motion';
-}
+        interface RemovedValue {
+            value: string;
+            position: number;
+            cleanValue: string;
+            type?: 'expression' | 'motion';
+        }
 async function cleanTextAndGetRemovedValues(text: string): Promise<{ cleanedText: string; removedValues: RemovedValue[] }> {
     const regex = /<([^>]*)>|(\[[^\]]*\])/g;
     const removedValues: RemovedValue[] = [];

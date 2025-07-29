@@ -1,4 +1,4 @@
-import { type sendInputEvent } from "../routes/wshandler/ws_model.js";
+import { type sendInputEvent } from "../ws/handler/ws_model.js";
 import { buildModel } from "./factory.js";
 import { generateText } from 'ai';
 import { streamText } from 'ai';

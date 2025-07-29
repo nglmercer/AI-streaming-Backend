@@ -5,7 +5,7 @@ import { cors } from 'hono/cors';
 import { serveStatic } from '@hono/node-server/serve-static'
 import 'dotenv/config'
 import transcriptRouter from './routes/transcript.js';
-import createWsRouter from './routes/wsRouter.js';
+import createWsRouter from './ws/wsRouter.js';
 import { join } from 'path';
 const port = 12393;
 const app = new Hono();
