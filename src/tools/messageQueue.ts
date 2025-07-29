@@ -104,8 +104,12 @@ export class MessageQueue {
   clear(): void {
     this.queue.length = 0;
   }
-  getAll(): Message[] {
-    return this.queue;
+  getAll(isRead?: boolean): Message[] {
+    if (typeof isRead === 'boolean'){
+      return this.queue.filter(m => m.isRead === isRead);
+    } else {
+      return this.queue;
+    }
   }
 }
 

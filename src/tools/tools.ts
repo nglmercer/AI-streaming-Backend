@@ -1,21 +1,21 @@
 // en characterTools.ts
 
-import { z } from 'zod';
+import { object, z } from 'zod';
 import { tool } from 'ai';
 import { getAllExpressions, getAllMotions } from '../tools/model-loader.js';
 import { messageQueue } from './messageQueue.js';  
 // Esto se debe ejecutar en un contexto async. Podrías envolverlo en una función async.
 export async function getCharacterTools() {
-    const availableExpressions = await getAllExpressions('shizuku');
+/*     const availableExpressions = await getAllExpressions('shizuku');
     const availableMotions = await getAllMotions('shizuku');
 
     // Validación para asegurar que los arrays no estén vacíos para z.enum
     if (!availableExpressions || !availableMotions || availableExpressions.length === 0 || availableMotions.length === 0) {
         throw new Error("Expressions or motions list is empty.");
-    }
+    } */
 
     return {
-        setExpression: tool({
+/*         setExpression: tool({
             description: 'Usa esta herramienta para cambiar la expresión facial del personaje.',
             parameters: z.object({ // 'inputSchema' se renombra a 'parameters' en v4
                 expressionName: z.enum(availableExpressions as [string, ...string[]])
@@ -63,21 +63,25 @@ export async function getCharacterTools() {
                 console.log(`[TOOL CALL] Marcar como leído id=${id} -> ${ok ? 'OK' : 'NOT FOUND'}`);
                 return { success: ok };
             },
-        }),
+        }), */
         // Dentro de getCharacterTools(), junto a las demás herramientas...
 
         getNextMessage: tool({
-            description: 'Obtiene el siguiente mensaje no leído y lo marca como leído automáticamente.',
+            description: 'get messages and read the next message.',
             parameters: z.object({}), // Sin parámetros
             execute: async () => {
-                const msg = messageQueue.getNextUnread();
-                if (!msg) {
+                const allmsgs = messageQueue.getAll();
+                const msgs = allmsgs.map((a)=>({
+                    text: a.text,
+                }))
+                if (!msgs || msgs.length === 0) {
                 console.log('[TOOL CALL] No hay mensajes sin leer.');
-                return { success: false, message: null };
+                return { success: false, message: 'not found' };
                 }
-                console.log(`[TOOL CALL] Mensaje leído: ${msg.text} (id=${msg.id})`);
-                return { success: true, message: msg };
+                console.log(`[TOOL CALL] Mensajes leídos:`,msgs,Object.keys(msgs));
+                return { success: true, message: JSON.stringify(msgs) };
             },
         }),
     };
 }
+// only execute this but not return response
