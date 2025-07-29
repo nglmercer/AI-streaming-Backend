@@ -2,7 +2,7 @@
 
 import type { Server as HttpServer } from 'http';
 import { WebSocketServer, WebSocket, type RawData } from 'ws';
-import { textResponse,streamResponse } from './wshandler/ai_response.js'; // Asumimos que este archivo existe y exporta la función
+import { textResponse,streamResponse,memory } from './wshandler/ai_response.js'; // Asumimos que este archivo existe y exporta la función
 import { parseClientMessage, sendMessage } from '../ws/wsUtils.js';
 import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../ws/types.ts';
 import { textToSpeech,processAudioChunkToBase64 } from './wshandler/speechTTS.js';
@@ -41,17 +41,22 @@ export default function createWsRouter(httpServer: HttpServer) {
             const inputEvent: InputEvent = { type: 'text-input', text: message.text };
             const streamPayload = await streamResponse(inputEvent);
             if (!streamPayload) return;
-            
+            let full_text = '';
+
             for await (const payload of streamPayload) {
+              full_text += payload;
               sendMessage(ws, 'full-text', payload, message.requestId);
               const resultTTS = await textToSpeech(payload,'es-PE-CamilaNeural',{
                 'format': 'audio-24khz-48kbitrate-mono-mp3',
               })
               sendMessage(ws,'audio',{
                 audio:resultTTS.toBase64(),
-                type: 'audio'
+                type: 'audio',
+                text: payload
               })
             }
+            memory.addUserMessage(message.text);
+            memory.addAIMessage(full_text);
           } catch (error: any) {
             console.error(`❌ Error procesando "${message.type}":`, error);
             

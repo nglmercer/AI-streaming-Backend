@@ -38,28 +38,18 @@ function encodeWAV(samples: Float32Array, sampleRate: number= 10000) {
   return Buffer.concat([header, dataBuffer]);
 }
 
-async function generateTranscript(audioBytes: Buffer) {
-    const audioBase64 = audioBytes.toString("base64");
+async function generateTranscript(audioBytes: Buffer): Promise<string> {
+    //const audioBase64 = audioBytes.toString("base64");
     
-    const { choices } = await client.chat.complete({
-      model: "voxtral-small-latest",
-      messages: [
-        {
-          role: 'assistant',
-          content: 'Transcribe the audio in one sentence.',
-        },
-        {
-          role: 'user',
-          content: [
-            { type: "input_audio", inputAudio: audioBase64 },
-            { type: "text", text: prompts.transcript },
-          ],
-        }
-
-      ],
+    const traductions = await client.audio.transcriptions.complete({
+      model: "voxtral-mini-latest",
+      file: {
+        fileName: "audio.mp3",
+        content: audioBytes
+      }
     });
-    console.log("Answer:", choices[0].message.content);
-    return choices[0]?.message?.content || "No transcript returned";
+    console.log("Answer:", traductions);
+    return traductions.text || "No transcript returned";
 }
 
 // ✅ POST /base64 (sin cambios)

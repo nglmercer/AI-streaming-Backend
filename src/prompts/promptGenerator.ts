@@ -3,7 +3,7 @@ import basePrompt from './scheme/basePrompt.json' with { type: 'json' };
 import miliConfig from './characters/mili.json' with { type: 'json' };
 import styleRules from './scheme/styleRules.json' with { type: 'json' };
 import lunaConfig from './characters/luna.json' with { type: 'json' };
-
+import exactConfig from './characters/exact.json' with { type: 'json' };
 // Function to replace placeholders in the template
 function generatePrompt(template:{template: string}, config:{[key: string]: string}, humanName = 'User') {
   let prompt = template.template;
@@ -24,5 +24,6 @@ export function generateGroupPrompt(humanName: string, otherAIs: string[]) {
   return groupIntro + generatePrompt(basePrompt, miliConfig, humanName);
 }
 export const lunaPrompt = generatePrompt(basePrompt, lunaConfig);
+export const exacPrompt = generatePrompt(basePrompt, exactConfig);
 console.log("lunaPrompt", lunaPrompt);
 console.log("miliPrompt", miliPrompt);
