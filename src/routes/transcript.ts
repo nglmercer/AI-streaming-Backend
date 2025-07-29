@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { Mistral } from '@mistralai/mistralai';
-import prompts from '../prompts/transcript.js';
+//import prompts from '../prompts/transcript.js';
 const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
 const router = new Hono();
 

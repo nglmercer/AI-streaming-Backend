@@ -5,6 +5,7 @@ import { cors } from 'hono/cors';
 import { serveStatic } from '@hono/node-server/serve-static'
 import 'dotenv/config'
 import transcriptRouter from './routes/transcript.js';
+import commentsRouter from './routes/comments.js'
 import createWsRouter from './ws/wsRouter.js';
 import { join } from 'path';
 const port = 12393;
@@ -14,6 +15,7 @@ app.use(cors());
 app.use('/*', serveStatic({ root: './src/public' }))
 app.get('/', (c) => c.text('Hello Hono!'));
 app.route('/transcript', transcriptRouter);
+app.route('/api/messages', commentsRouter);
 
 // Iniciar servidor y capturar la instancia del servidor HTTP
 const server = serve({

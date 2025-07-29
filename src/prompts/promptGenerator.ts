@@ -32,5 +32,3 @@ export const charactersPrompt = {
   miliPrompt,
   generateGroupPrompt
 }
-console.log("lunaPrompt", lunaPrompt);
-console.log("miliPrompt", miliPrompt);
