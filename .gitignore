@@ -27,4 +27,4 @@ lerna-debug.log*
 # misc
 .DS_Store
 package-lock.json
-temp/sample.mp3
+temp/
