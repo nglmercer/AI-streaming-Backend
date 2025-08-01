@@ -2,6 +2,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { cwd } from 'process';
+import fs from 'fs';
 import { type Live2DModelSetting } from '../types/model.types.js';
 
 /* -------------------------------------------------------------------------- */
@@ -9,7 +10,15 @@ import { type Live2DModelSetting } from '../types/model.types.js';
 /* -------------------------------------------------------------------------- */
 
 const MODELS_DIR = join(cwd(), 'src', 'public', 'models');
-
+export async function getListModels():Promise<string[]> {
+    try {
+      const models = fs.readdirSync(MODELS_DIR);
+      const result = models.filter(model => fs.statSync(join(MODELS_DIR, model)).isDirectory());
+      return result;
+    } catch(e) {
+      return []
+    }
+}
 /**
  * Lee y parsea el archivo de configuración de un modelo Live2D.
  * Soporta tanto v2 (*.model.json) como v3 (*.model3.json).

@@ -8,7 +8,6 @@ export interface DefaulConfig {
     host: string;
     OPENAI_API_KEY: string;
     GEMINI_API_KEY: string;
-    GOOGLE_GENERATIVE_AI_API_KEY: string;
     MISTRAL_API_KEY: string;
 }
 
@@ -17,7 +16,6 @@ const defaultConfig: DefaulConfig = {
     host: 'localhost',
     OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
     GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
-    GOOGLE_GENERATIVE_AI_API_KEY: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || '',
 };
 

@@ -1,6 +1,10 @@
 import { Hono } from 'hono';
-import { getModel } from '../tools/model-loader.js';
+import { getModel,getListModels } from '../tools/model-loader.js';
 const router = new Hono();
+router.get('/list',async (c) => {
+  const models = await getListModels();
+  return c.json(models);
+})
 router.get('/json/:modelName', async (c) => {
   const modelName = c.req.param('modelName');
   if (!modelName) {
