@@ -33,16 +33,16 @@ async function streamResponse(msg: sendInputEvent) {
     if (!msg.text) return;
     // Handle the input event here
     console.log("streamResponse",msg);
+    const config = await getConfig();
     const history = await memory.getMessages();
-    const expresions = await getAllExpressions('shizuku');
-    const motions = await getAllMotions('shizuku');
+    const expresions = await getAllExpressions(config.model2d);
+    const motions = await getAllMotions(config.model2d);
     const characterTools = await getCharacterTools(); 
     const Prompt = charactersPrompt.lunaPrompt
         .replace('{AllExpressions}', JSON.stringify(expresions))
         .replace('{AllMotions}', JSON.stringify(motions));
     console.log("Prompt",Prompt)
     const parsedHistory = JSON.stringify(history);
-    const config = await getConfig();
     const apikey = await getApiKey(config.provider)
 
     try {

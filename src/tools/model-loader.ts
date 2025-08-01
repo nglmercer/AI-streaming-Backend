@@ -26,7 +26,7 @@ export async function getListModels():Promise<string[]> {
  * @param modelName - Nombre de la carpeta que contiene al modelo.
  * @returns Objeto JSON con la configuración o `undefined` si falla.
  */
-export async function getModel(modelName: string): Promise<Live2DModelSetting | undefined> {
+export async function get2dModel(modelName: string): Promise<Live2DModelSetting | undefined> {
   if (!modelName){
     return;
   }
@@ -49,7 +49,7 @@ export async function getModel(modelName: string): Promise<Live2DModelSetting | 
 }
 
 export async function getExpressions(modelName: string): Promise<Map<string, string> | undefined> {
-  const model = await getModel(modelName);
+  const model = await get2dModel(modelName);
   if (!model) return;
 
   const expressions = new Map<string, string>();
@@ -75,7 +75,7 @@ export async function getExpressions(modelName: string): Promise<Map<string, str
  * @returns Map con el nombre del movimiento como clave y un array de archivos como valor.
  */
 export async function getMotions(modelName: string): Promise<Map<string, string[]> | undefined> {
-  const model = await getModel(modelName);
+  const model = await get2dModel(modelName);
   if (!model) return;
 
   const motions = new Map<string, string[]>();

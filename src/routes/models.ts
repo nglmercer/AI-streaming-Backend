@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { getModel,getListModels } from '../tools/model-loader.js';
+import { get2dModel,getListModels } from '../tools/model-loader.js';
 const router = new Hono();
 router.get('/list',async (c) => {
   const models = await getListModels();
@@ -10,7 +10,7 @@ router.get('/json/:modelName', async (c) => {
   if (!modelName) {
     return c.json({ error: 'Model name is required' }, 400);
   }
-  const model = await getModel(modelName);
+  const model = await get2dModel(modelName);
   if (!model) {
     return c.json({ error: 'Model not found' }, 404);
   }

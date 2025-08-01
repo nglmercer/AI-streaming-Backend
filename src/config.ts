@@ -12,9 +12,10 @@ export interface DefaultConfig {
     GEMINI_API_KEY: string;
     MISTRAL_API_KEY: string;
     DEEPSEEK_API_KEY: string;
-    ANTHROPIC_API_KEY: string; // Agregado ya que lo usas en Provider_apikeys
+    ANTHROPIC_API_KEY: string;
     provider: ProviderType;
     model: string;
+    model2d: string;
 }
 
 const Provider_apikeys = {
@@ -30,7 +31,8 @@ export const defaultConfig: DefaultConfig = {
     host: 'localhost',
     ...Provider_apikeys,
     provider: 'google',
-    model: 'gemini-2.5-flash'
+    model: 'gemini-2.5-flash',
+    model2d: 'shizuku',
 };
 
 // Mapeo de providers a sus respectivas claves de API
