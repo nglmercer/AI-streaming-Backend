@@ -2,67 +2,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { cwd } from 'process';
-
-/* -------------------------------------------------------------------------- */
-/*                               TYPES                                        */
-/* -------------------------------------------------------------------------- */
-
-export type MotionFile   = string;
-export type TextureFile  = string;
-export type PhysicsFile  = string;
-export type PoseFile     = string;
-export type ExpressionFile = string;
-
-export interface MotionEntry {
-  file: MotionFile;
-  fade_in?: number;
-  fade_out?: number;
-}
-
-export interface ExpressionEntry {
-  name: string;
-  file: ExpressionFile;
-}
-
-export interface HitAreaEntry {
-  name: string;
-  id: string;
-}
-
-/** Estructura esperada para modelos v2 (model.json) */
-export interface Live2DModelSettingV2 {
-  type: 'Live2D Model Setting';
-  name: string;
-  model: string;
-  textures: TextureFile[];
-  physics?: PhysicsFile;
-  pose?: PoseFile;
-  expressions?: ExpressionEntry[];
-  hit_areas?: HitAreaEntry[];
-  motions: Record<string, MotionEntry[]>;
-}
-
-/** Estructura esperada para modelos v3 (model3.json) */
-export interface Live2DModelSettingV3 {
-  Version: number;
-  FileReferences: {
-    Moc: string;
-    Textures: TextureFile[];
-    Physics?: string;
-    Pose?: string;
-    DisplayInfo?: string;
-    Expressions: { Name: string; File: string }[];
-    Motions: Record<string, { File: string }[]>;
-  };
-  Groups?: Array<{
-    Target: 'Parameter' | 'PartOpacity';
-    Name: string;
-    Ids: string[];
-  }>;
-  HitAreas?: Array<{ Id: string; Name: string }>;
-}
-
-export type Live2DModelSetting = Live2DModelSettingV2 | Live2DModelSettingV3;
+import { type Live2DModelSetting } from '../types/model.types.js';
 
 /* -------------------------------------------------------------------------- */
 /*                               IMPLEMENTATION                               */
@@ -77,9 +17,10 @@ const MODELS_DIR = join(cwd(), 'src', 'public', 'models');
  * @param modelName - Nombre de la carpeta que contiene al modelo.
  * @returns Objeto JSON con la configuración o `undefined` si falla.
  */
-export async function getModel(modelName?: string): Promise<Live2DModelSetting | undefined> {
-  if (!modelName) return;
-
+export async function getModel(modelName: string): Promise<Live2DModelSetting | undefined> {
+  if (!modelName){
+    return;
+  }
   // Posibles rutas a probar (ordenados por prioridad)
   const candidates = [
     join(MODELS_DIR, modelName, `${modelName}.model3.json`), // v3

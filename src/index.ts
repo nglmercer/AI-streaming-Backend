@@ -8,6 +8,7 @@ import transcriptRouter from './routes/transcript.js';
 import commentsRouter from './routes/comments.js'
 import configRouter from './routes/config.router.js'
 import createWsRouter from './ws/wsRouter.js';
+import modelsRouter from './routes/models.js';
 import { join } from 'path';
 const port = 12393;
 const app = new Hono();
@@ -17,7 +18,8 @@ app.use('/*', serveStatic({ root: './src/public' }))
 app.get('/', (c) => c.text('Hello Hono!'));
 app.route('/transcript', transcriptRouter);
 app.route('/api/messages', commentsRouter);
-app.route('/config',configRouter)
+app.route('/config',configRouter);
+app.route('/models', modelsRouter);
 // Iniciar servidor y capturar la instancia del servidor HTTP
 const server = serve({
   fetch: app.fetch,
