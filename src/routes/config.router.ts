@@ -1,6 +1,6 @@
 // config.router.ts
 import { Hono } from 'hono';
-import { getConfig, updateConfig,type DefaulConfig } from '../config.js'; // Ajusta la ruta según tu proyecto
+import { getConfig, updateConfig,type defaultConfig } from '../config.js'; // Ajusta la ruta según tu proyecto
 
 const router = new Hono();
 
@@ -18,7 +18,7 @@ router.get('/', async (c) => {
 // PATCH /config → actualiza solo los campos enviados
 router.patch('/', async (c) => {
   try {
-    const body = await c.req.json<Partial<DefaulConfig>>();
+    const body = await c.req.json<Partial<any>>();
     const updated = await updateConfig(body);
     return c.json(updated);
   } catch (err) {

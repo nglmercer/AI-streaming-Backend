@@ -7,6 +7,7 @@ import { InMemoryChatMessageHistory } from "@langchain/core/chat_history";
 import { type BaseMessage } from "@langchain/core/messages";
 import { getAllExpressions,getAllMotions } from '../tools/model-loader.js';
 import { getCharacterTools } from "../tools/tools.js";
+import { defaultConfig,getConfig,getApiKey } from "../config.js";
 const memory = new InMemoryChatMessageHistory();
 setTimeout(async()=>{
     console.log("textResponse", await memory.getMessages());
@@ -14,9 +15,10 @@ setTimeout(async()=>{
 async function textResponse(msg: sendInputEvent) {
     if (!msg.text) return;
     const characterTools = await getCharacterTools(); 
-    // Handle the input event here
+    const config = await getConfig();
+    const apikey = await getApiKey(config.provider)
     try {
-        const model = buildModel({provider: 'google', model: 'gemini-2.5-flash', apiKey: process.env.GEMINI_API_KEY});
+        const model = buildModel({provider: config.provider, model: config.model, apiKey: apikey});
         const { text } = await generateText({
             model,
             prompt: msg.text,
@@ -40,10 +42,12 @@ async function streamResponse(msg: sendInputEvent) {
         .replace('{AllMotions}', JSON.stringify(motions));
     console.log("Prompt",Prompt)
     const parsedHistory = JSON.stringify(history);
+    const config = await getConfig();
+    const apikey = await getApiKey(config.provider)
+
     try {
-        const model = buildModel({provider: 'google', model: 'gemini-2.5-flash', apiKey: process.env.GEMINI_API_KEY});
+        const model = buildModel({provider: config.provider, model: config.model, apiKey: apikey});
         const { textStream } = streamText({
-            
             model,
             system: Prompt,
             tools: characterTools,

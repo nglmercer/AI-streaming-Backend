@@ -15,24 +15,27 @@ import {
   createDeepSeek,
   type DeepSeekProviderSettings,
 } from '@ai-sdk/deepseek';
-import { type LanguageModel } from 'ai';
+import { createMistral,type MistralProviderSettings } from '@ai-sdk/mistral';
+import { type LanguageModel,type LanguageModelV1 } from 'ai';
 import { type ModelConfig } from './config.js';
 
 // Mapeo de strings a las funciones creadoras de proveedores
-const providerCreatorMap = {
+export const providerCreatorMap = {
   openai: createOpenAI,
   anthropic: createAnthropic,
   google: createGoogleGenerativeAI,
   deepseek: createDeepSeek,
-  // agrega más según instales
-};
-
+  mistral: createMistral,
+} as const;
+export type ProviderType = keyof typeof providerCreatorMap;
+export const providerKeys = Object.keys(providerCreatorMap) as ProviderType[];
 // Un tipo de unión que representa todas las posibles configuraciones de proveedor.
 // Nos ayuda a decirle a TypeScript que el objeto { apiKey } es válido.
 type AnyProviderSettings = OpenAIProviderSettings &
   AnthropicProviderSettings &
   GoogleGenerativeAIProvider &
-  DeepSeekProviderSettings;
+  DeepSeekProviderSettings &
+  MistralProviderSettings;
 
 /**
  * Caché para almacenar las instancias de los modelos ya creados.
@@ -44,7 +47,6 @@ export function buildModel({
   provider,
   model,
   apiKey,
-  ...settings // Contiene `temperature`, `maxTokens`, etc.
 }: ModelConfig): LanguageModel {
   // La clave del caché debe ser única para una combinación de proveedor, modelo y clave API.
   // Si apiKey es undefined, significa que se usarán las variables de entorno.
@@ -70,11 +72,11 @@ export function buildModel({
 
   // b. Usa la instancia del proveedor para obtener el modelo específico,
   //    pasándole el nombre del modelo y los ajustes de la llamada (settings).
-  const newModelInstance = providerInstance(model, settings);
+  const newModelInstance = providerInstance(model);
   // ------------------------------------
 
   // 3. Guárdala en el caché para futuros usos
-  modelInstances.set(cacheKey, newModelInstance);
+  modelInstances.set(cacheKey, newModelInstance as LanguageModelV1);
 
-  return newModelInstance;
+  return newModelInstance as LanguageModelV1;
 }
