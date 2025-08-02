@@ -18,7 +18,7 @@ async function textResponse(msg: sendInputEvent) {
     const config = await getConfig();
     const apikey = await getApiKey(config.provider)
     try {
-        const model = buildModel({provider: config.provider, model: config.model, apiKey: apikey});
+        const model = buildModel({provider: config.provider || 'google', model: config.model, apiKey: apikey});
         const { text } = await generateText({
             model,
             prompt: msg.text,
@@ -46,7 +46,7 @@ async function streamResponse(msg: sendInputEvent) {
     const apikey = await getApiKey(config.provider)
 
     try {
-        const model = buildModel({provider: config.provider, model: config.model, apiKey: apikey});
+        const model = buildModel({provider: config.provider || 'google', model: config.model, apiKey: apikey});
         const { textStream } = streamText({
             model,
             system: Prompt,

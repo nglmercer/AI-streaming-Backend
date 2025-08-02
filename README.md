@@ -12,3 +12,5 @@ open http://localhost:3000
 2. error if not exist apikeys,optional and obligatories  []
 3. Receive options to set apikey []
 4. save or download history []
+5. add new voice Providers []
+6. hot model reload response []

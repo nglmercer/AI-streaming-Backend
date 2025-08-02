@@ -18,7 +18,7 @@ import {
 import { createMistral,type MistralProviderSettings } from '@ai-sdk/mistral';
 import { type LanguageModel,type LanguageModelV1 } from 'ai';
 import { type ModelConfig } from './config.js';
-
+import { emitterConfig } from '../config.js';
 // Mapeo de strings a las funciones creadoras de proveedores
 export const providerCreatorMap = {
   openai: createOpenAI,
@@ -50,6 +50,20 @@ export function buildModel({
 }: ModelConfig): LanguageModel {
   // La clave del caché debe ser única para una combinación de proveedor, modelo y clave API.
   // Si apiKey es undefined, significa que se usarán las variables de entorno.
+  if (!provider || !model || !apiKey) {
+    if (typeof emitterConfig.emit !== 'function') {
+      throw new Error('Provider, model y apiKey son requeridos');
+    }
+    emitterConfig.emit('ERROR',{
+      message: 'Provider, model y apiKey son requeridos',
+      required: ['provider','model','apiKey'],
+      raw: {
+        provider,
+        model,
+        apiKey,
+      }
+    })
+  }
   const cacheKey = `${provider}:${model}:${apiKey ?? 'env_key'}`;
 
   // 1. Revisa si la instancia del modelo ya existe en el caché
@@ -59,7 +73,7 @@ export function buildModel({
   }
 
   // 2. Si no existe, crea una nueva instancia
-  console.log(`[Factory] Creando nueva instancia para: ${cacheKey}`);
+  console.log(`[Factory] Creando nueva instancia para: ${cacheKey}`,{provider,model,apiKey});
   const createProvider = providerCreatorMap[provider as keyof typeof providerCreatorMap];
   if (!createProvider) {
     throw new Error(`Provider "${provider}" no soportado`);
