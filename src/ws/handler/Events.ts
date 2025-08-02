@@ -4,7 +4,7 @@ import { parseClientMessage, sendMessage } from '../wsUtils.js';
 import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../types.js';
 import { textToSpeech,processAudioChunkToBase64 } from './speechTTS.js';
 import { cleanTextAndGetRemovedValues } from '../../tools/cleantext.js';
-
+import { getConfig,TTS_Config } from '../../config.js';
 async function handleEvents(ws: WebSocket, rawData: RawData) {
           const clientMessage  = parseClientMessage(rawData);
       if (!clientMessage) {
@@ -26,18 +26,22 @@ async function textInput(message:InputEventWs,ws:WebSocket) {
             try {
             if (!message.text) return;
             const inputEvent: InputEvent = { type: 'text-input', text: message.text };
+            const startTime = performance.now();
             const streamPayload = await streamResponse(inputEvent);
+            const endTime = performance.now();
+            console.log("time",endTime - startTime,{
+              endTime,
+              startTime
+            })
             if (!streamPayload) return;
             let full_text = '';
-
+            sendMessage(ws,'full-text','thinking')
             for await (const payload of streamPayload) {
               full_text += payload;
               sendMessage(ws, 'full-text', payload, message.requestId);
               if (!payload || payload.length <= 2) continue;
               const {cleanedText, removedValues} = await cleanTextAndGetRemovedValues(payload);
-              const resultTTS = await textToSpeech(cleanedText,'es-PE-CamilaNeural',{
-                'format': 'audio-24khz-48kbitrate-mono-mp3',
-              })
+              const resultTTS = await textToSpeech(cleanedText,TTS_Config.voice,TTS_Config.options);
               sendMessage(ws,'audio',{
                 audio:resultTTS.toBase64(),
                 type: 'audio',

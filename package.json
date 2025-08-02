@@ -4,7 +4,13 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "build:win-x64": "bun build --compile --target=bun-windows-x64 ./src/index.ts --outfile dist/myapp-windows-x64",
+    "build:win-x64-baseline": "bun build --compile --target=bun-windows-x64-baseline ./src/index.ts --outfile dist/myapp-windows-x64-baseline",
+    "build:linux-x64": "bun build --compile --target=bun-linux-x64 ./src/index.ts --outfile dist/myapp-linux-x64",
+    "build:linux-arm64": "bun build --compile --target=bun-linux-arm64 ./src/index.ts --outfile dist/myapp-linux-arm64",
+    "build:macos-arm64": "bun build --compile --target=bun-darwin-arm64 ./src/index.ts --outfile dist/myapp-macos-arm64",
+    "build:macos-x64": "bun build --compile --target=bun-darwin-x64 ./src/index.ts --outfile dist/myapp-macos-x64"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",

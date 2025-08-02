@@ -1,7 +1,8 @@
 import { DataStorage, JSONFile } from 'json-obj-manager';
 import { providerKeys, type ProviderType } from './ai/factory.js';
+import { EdgeTTS,type SynthesisOptions } from "edge-tts-fork";
 import { Emitter }from 'json-obj-manager'
-import path from 'path';
+import path, { format } from 'path';
 
 export const emitterConfig = new Emitter();
 const configPath = path.join(process.cwd(), 'temp', 'config.json');
@@ -31,7 +32,18 @@ const Provider_apikeys = {
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || '',
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
 }
-
+interface ttsOptions {
+    ttsprovider: string
+    voice:string;
+    options:SynthesisOptions;
+}
+export const TTS_Config:ttsOptions = {
+   ttsprovider:'ttsEdge',
+   voice: 'es-PE-CamilaNeural',
+   options: {
+     format: 'audio-24khz-48kbitrate-mono-mp3',
+   }
+}
 export const defaultConfig: DefaultConfig = {
     port: 12393,
     host: 'localhost',
