@@ -14,7 +14,6 @@ setTimeout(async()=>{
 },1000)
 async function textResponse(msg: sendInputEvent) {
     if (!msg.text) return;
-    const characterTools = await getCharacterTools(); 
     const config = await getConfig();
     const apikey = await getApiKey(config.provider)
     try {
@@ -22,7 +21,6 @@ async function textResponse(msg: sendInputEvent) {
         const { text } = await generateText({
             model,
             prompt: msg.text,
-            tools: characterTools,
         });
         return text;
     } catch (e) {
@@ -50,8 +48,8 @@ async function streamResponse(msg: sendInputEvent) {
         const { textStream } = streamText({
             model,
             system: Prompt,
-            tools: characterTools,
-            prompt: `context: ${parsedHistory}\nresponse:\n${msg.text}\n  tools: ${JSON.stringify(Object.keys(characterTools))}`,
+            
+            prompt: `context: ${parsedHistory}\nresponse:\n${msg.text}\n`,
         });
         
         return textStream;
