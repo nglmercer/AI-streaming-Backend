@@ -13,6 +13,7 @@ export class ChunkBuffer {
 
   /**
    * Agrega un trozo de texto al buffer y devuelve los textos completos que se pueden procesar.
+   * MODIFICADO: Ahora mantiene las expresiones junto con el texto circundante.
    */
   addChunk(chunk: string): string[] {
     this.buffer += chunk;
@@ -22,7 +23,8 @@ export class ChunkBuffer {
       return []; // Esperar más datos si hay una expresión incompleta al final
     }
 
-    const safeBreakPoint = this.findSafeBreakPoint();
+    // CAMBIO PRINCIPAL: Buscar puntos de corte que NO dividan expresiones del texto
+    const safeBreakPoint = this.findSafeBreakPointWithExpressions();
 
     if (safeBreakPoint === -1) {
       return []; // No hay un punto de corte seguro, mantener todo en el buffer
@@ -31,8 +33,10 @@ export class ChunkBuffer {
     const textToProcess = this.buffer.slice(0, safeBreakPoint);
     this.buffer = this.buffer.slice(safeBreakPoint);
 
-    const processedTexts = this.processText(textToProcess);
-    completeTexts.push(...processedTexts);
+    // CAMBIO: No procesar como chunks separados, mantener como unidad
+    if (textToProcess.trim()) {
+      completeTexts.push(textToProcess);
+    }
 
     return completeTexts;
   }
@@ -47,9 +51,9 @@ export class ChunkBuffer {
       return [];
     }
     
-    const results = this.processText(this.buffer);
+    const result = this.buffer;
     this.buffer = '';
-    return results;
+    return [result]; // Devolver como una sola unidad
   }
   
   /**
@@ -67,56 +71,70 @@ export class ChunkBuffer {
   }
 
   /**
-   * Busca el último punto de corte seguro (espacio, puntuación) en el buffer.
-   * Es más simple y robusto que la versión original.
+   * NUEVO: Busca puntos de corte que mantengan las expresiones junto con el texto.
+   * Evita cortar entre una expresión y el texto que la rodea.
    */
-  private findSafeBreakPoint(): number {
+  private findSafeBreakPointWithExpressions(): number {
+    if (this.buffer.length < this.minLengthToSplit) {
+      return -1;
+    }
+
+    // Encontrar todas las expresiones en el buffer
+    const expressions = [...this.buffer.matchAll(this.expressionPattern)];
+    
+    // Si no hay expresiones, usar el método original
+    if (expressions.length === 0) {
+      return this.findBasicSafeBreakPoint();
+    }
+
+    // Buscar un punto de corte que no esté demasiado cerca de una expresión
+    for (let i = this.buffer.length - 1; i >= this.minLengthToSplit; i--) {
+      if (this.safeBreakChars.has(this.buffer[i])) {
+        // Verificar que no estamos cortando muy cerca de una expresión
+        if (this.isGoodBreakPoint(i, expressions)) {
+          return i + 1;
+        }
+      }
+    }
+
+    return -1;
+  }
+
+  /**
+   * Verifica si un punto de corte es bueno considerando las expresiones.
+   */
+  private isGoodBreakPoint(breakPoint: number, expressions: RegExpMatchArray[]): boolean {
+    const proximityThreshold = 5; // Caracteres mínimos antes/después de una expresión
+    
+    for (const expression of expressions) {
+      const exprStart = expression.index!;
+      const exprEnd = exprStart + expression[0].length;
+      
+      // No cortar muy cerca del inicio o final de una expresión
+      if (Math.abs(breakPoint - exprStart) < proximityThreshold || 
+          Math.abs(breakPoint - exprEnd) < proximityThreshold) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /**
+   * Método original de búsqueda de puntos de corte (como respaldo).
+   */
+  private findBasicSafeBreakPoint(): number {
     if (this.buffer.length < this.minLengthToSplit) {
       return -1;
     }
     
-    // Busca hacia atrás desde el final para encontrar el último carácter seguro
     for (let i = this.buffer.length - 1; i >= 0; i--) {
       if (this.safeBreakChars.has(this.buffer[i])) {
-        return i + 1; // Incluye el carácter de corte
+        return i + 1;
       }
     }
 
-    return -1; // No se encontró ningún punto de corte seguro
-  }
-
-  /**
-   * Divide un texto en segmentos normales y "expresiones" especiales.
-   */
-  private processText(text: string): string[] {
-    if (!text.trim()) return [];
-
-    const results: string[] = [];
-    let lastIndex = 0;
-    const matches = [...text.matchAll(this.expressionPattern)];
-
-    if (matches.length === 0) {
-      return [text]; // Optimización: si no hay expresiones, devolver el texto tal cual.
-    }
-
-    for (const match of matches) {
-      const matchIndex = match.index!;
-      const matchText = match[0];
-
-      if (matchIndex > lastIndex) {
-        results.push(text.slice(lastIndex, matchIndex));
-      }
-      
-      results.push(matchText);
-      lastIndex = matchIndex + matchText.length;
-    }
-
-    if (lastIndex < text.length) {
-      results.push(text.slice(lastIndex));
-    }
-
-    // Filtra cadenas vacías que podrían resultar del split
-    return results.filter(s => s.length > 0);
+    return -1;
   }
 
   /**
@@ -141,6 +159,7 @@ export function getOrCreateBuffer(ws: WebSocket): ChunkBuffer {
   }
   return connectionBuffers.get(ws)!;
 }
+
 export function deleteBufferForConnection(ws: WebSocket): void {
   connectionBuffers.delete(ws);
 }

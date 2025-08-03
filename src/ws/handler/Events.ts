@@ -24,7 +24,6 @@ async function handleEvents(ws: WebSocket, rawData: RawData) {
       await fetchBackgrounds(ws);
       break;
     default:
-      // Silenciosamente ignorar eventos desconocidos o enviar un error si es necesario
       sendMessage(ws, 'error', { message: `Evento desconocido: ${clientMessage.type}` });
   }
 }
@@ -49,27 +48,27 @@ async function textInput(message: InputEventWs, ws: WebSocket) {
       
       full_text += chunk;
       
-      // CORRECCIÓN 1: 'addChunk' ahora devuelve un array directamente
+      // El buffer ahora devuelve textos completos con sus expresiones
       const completeTexts = buffer.addChunk(chunk);
       
       for (const completeText of completeTexts) {
-        await processCompleteText(completeText, ws, message.requestId);
+        await processCompleteTextWithExpressions(completeText, ws, message.requestId);
       }
     }
     
-    // CORRECCIÓN 2: 'flushAll' ahora se llama 'flush'
+    // Procesar cualquier texto restante en el buffer
     const finalTexts = buffer.flush();
     for (const finalText of finalTexts) {
-      await processCompleteText(finalText, ws, message.requestId);
+      await processCompleteTextWithExpressions(finalText, ws, message.requestId);
     }
     
     memory.addUserMessage(message.text);
     memory.addAIMessage(full_text);
-    console.log("response",full_text)
+    console.log("response", full_text);
     sendMessage(ws, 'complete', { message });
     
   } catch (error: any) {
-    buffer.clear(); // Limpiar el buffer en caso de error
+    buffer.clear();
     sendMessage(
       ws,
       'error',
@@ -79,36 +78,49 @@ async function textInput(message: InputEventWs, ws: WebSocket) {
   }
 }
 
-async function processCompleteText(completeText: string, ws: WebSocket, requestId?: string) {
+/**
+ * NUEVA FUNCIÓN: Procesa texto manteniendo las expresiones sincronizadas con el audio.
+ */
+async function processCompleteTextWithExpressions(completeText: string, ws: WebSocket, requestId?: string) {
+  // Siempre enviar el texto completo (con expresiones) para mostrar al usuario
   sendMessage(ws, 'full-text', completeText, requestId);
   
   if (completeText.length <= 2) return;
   
   try {
+    // Limpiar el texto y obtener las expresiones
     const { cleanedText, removedValues } = await cleanTextAndGetRemovedValues(completeText);
+    console.log("cleanedText", { cleanedText, removedValues });
     
-    if (cleanedText.trim()) {
-      try {
-        const resultTTS = await textToSpeech(cleanedText, TTS_Config.voice, TTS_Config.options);
-        sendMessage(ws, 'audio', {
-          audio: resultTTS.toBase64(),
-          type: 'audio',
-          text: completeText,
-          payload: removedValues
-        });
-      } catch (ttsError) {
-        // En caso de error de TTS, no se envía audio, pero el flujo continúa.
+    // CAMBIO PRINCIPAL: Procesar audio y expresiones como una unidad
+    if (cleanedText.trim() || removedValues.length > 0) {
+      let audioData = null;
+      
+      // Solo generar audio si hay texto limpio
+      if (cleanedText.trim()) {
+        try {
+          const resultTTS = await textToSpeech(cleanedText, TTS_Config.voice, TTS_Config.options);
+          audioData = resultTTS.toBase64();
+        } catch (ttsError) {
+          console.warn('Error generando TTS:', ttsError);
+          // Continuar sin audio, pero mantener las expresiones
+        }
       }
-    } else if (removedValues.length > 0) {
+      
+      // ENVIAR AUDIO Y EXPRESIONES JUNTOS
       sendMessage(ws, 'audio', {
-        audio: null,
-        //type: 'expression-only', implement in client
-        text: completeText,
-        payload: removedValues
-      });
+        audio: audioData,
+        type: audioData ? 'audio' : 'expressions-only',//implement expressions-only
+        text: completeText, // Texto original con expresiones
+        cleanText: cleanedText, // Texto limpio para referencia
+        payload: removedValues // Expresiones a aplicar
+      }, requestId);
+      
     }
   } catch (cleanError) {
-     // Error al limpiar texto, se podría notificar pero por ahora es silencioso.
+    console.warn('Error al procesar texto:', cleanError);
+    // En caso de error, enviar al menos el texto sin procesar
+    sendMessage(ws, 'full-text', completeText, requestId);
   }
 }
 
@@ -119,7 +131,6 @@ async function fetchBackgrounds(ws: WebSocket) {
 }
 
 function handleConnectionClose(ws: WebSocket) {
-  // CORRECCIÓN 3: Usar la nueva función para limpiar el buffer de forma segura.
   deleteBufferForConnection(ws);
 }
 
