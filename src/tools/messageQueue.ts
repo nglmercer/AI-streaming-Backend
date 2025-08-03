@@ -127,7 +127,14 @@ export class MessageQueue {
     }
   }
 }
-
 // Instancia singleton para ser importada en characterTools.ts
 export const messageQueue = new MessageQueue();
+export function markAsRead(id?:string| string[]){
+  if (!id) return;
+  if (Array.isArray(id)){
+    id.forEach(i => messageQueue.markAsRead(i))
+  } else {
+    messageQueue.markAsRead(id)
+  }
+}
 messageQueue.loadBackup();

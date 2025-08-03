@@ -39,7 +39,6 @@ async function streamResponse(msg: sendInputEvent) {
     const Prompt = charactersPrompt.lunaPrompt
         .replace('{AllExpressions}', JSON.stringify(expresions))
         .replace('{AllMotions}', JSON.stringify(motions));
-    console.log("Prompt",Prompt)
     const parsedHistory = JSON.stringify(history);
     const apikey = await getApiKey(config.provider)
 

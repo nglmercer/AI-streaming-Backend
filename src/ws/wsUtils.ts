@@ -62,8 +62,8 @@ export function sendMessage<T extends Record<string, unknown | any> = Record<str
   };
 
   const message = extend && typeof payload === 'object'
-    ? { ...baseMessage, ...payload }
-    : { ...baseMessage, payload };
+    ? { ...baseMessage,type:event, ...payload }
+    : { ...baseMessage,type:event, payload };
 
   ws.send(JSON.stringify(message));
 }

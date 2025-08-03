@@ -1,51 +1,104 @@
-import { getExpressions,getMotions } from "./model-loader.js";
+import { getExpressions, getMotions } from "./model-loader.js";
 import { getConfig } from "../config.js";
+
 interface RemovedValue {
-            value: string;
-            position: number;
-            cleanValue: string;
-            type?: 'expression' | 'motion';
-        }
+    value: string;
+    position: number;
+    cleanValue: string;
+    type?: 'expression' | 'motion';
+}
+
 async function cleanTextAndGetRemovedValues(text: string): Promise<{ cleanedText: string; removedValues: RemovedValue[] }> {
     const config = await getConfig();
     const defaultModel = config.model2d;
-    const regex = /<([^>]*)>|(\[[^\]]*\])/g;
+    
+    // Regex mejorado que maneja mejor los casos edge
+    const regex = /<([^<>]*)>|\[([^\[\]]*)\]/g;
     const removedValues: RemovedValue[] = [];
-    let lastIndex = 0;
+    
     const allExpressions = await getExpressions(defaultModel);
     const allMotions = await getMotions(defaultModel);
+    
+    // Verificar si hay expresiones o movimientos incompletos
+    const incompletePattern = /<[^>]*$|\[[^\]]*$/;
+    if (incompletePattern.test(text)) {
+        console.warn('Texto contiene expresiones incompletas:', text);
+        // Retornar el texto sin procesar si hay expresiones incompletas
+        return { cleanedText: text, removedValues: [] };
+    }
+    
     const cleanedText = text.replace(regex, (match, p1, p2, offset) => {
         let cleanValue = '';
-        let type = ''
-        if (p1) { // Si es un patrón con <>
-            cleanValue = p1;
-        } else if (p2) { // Si es un patrón con []
-            cleanValue = p2.slice(1, -1); // Eliminar los corchetes
+        let type: 'expression' | 'motion' | undefined = undefined;
+        
+        if (p1 !== undefined) { // Patrón con <>
+            cleanValue = p1.trim();
+        } else if (p2 !== undefined) { // Patrón con []
+            cleanValue = p2.trim();
         }
-        if (allExpressions && allExpressions.get(cleanValue)) {
+        
+        // Verificar si es una expresión o movimiento válido
+        if (allExpressions && allExpressions.has(cleanValue)) {
             type = 'expression';
-        } else if (allMotions && allMotions.get(cleanValue)) {
+        } else if (allMotions && allMotions.has(cleanValue)) {
             type = 'motion';
         }
-        removedValues.push({ value: match, position: offset, cleanValue, type: type as 'expression' | 'motion' | undefined });
-        lastIndex = offset + match.length;
-        return '';
+        
+        // Solo agregar a removedValues si es una expresión/movimiento válido
+        if (type) {
+            removedValues.push({ 
+                value: match, 
+                position: offset, 
+                cleanValue, 
+                type 
+            });
+        } else {
+            // Si no es válido, mantener el texto original
+            console.warn(`Expresión/movimiento no reconocido: ${cleanValue}`);
+            return match; // No remover del texto
+        }
+        
+        return ''; // Remover del texto
     });
-
-    return { cleanedText, removedValues };
+    
+    // Limpiar espacios extra que puedan haber quedado
+    const finalCleanedText = cleanedText.replace(/\s+/g, ' ').trim();
+    
+    return { cleanedText: finalCleanedText, removedValues };
 }
-export { cleanTextAndGetRemovedValues }
-/* // Ejemplo de uso
-const textoOriginal1 = "¡Estoy genial, gracias por preguntar! Siempre lista para una buena charla. ¿Y tú, cómo te encuentras hoy? <f01> <idle>";
-const textoOriginal2 = "¡Estoy genial, gracias por preguntar! Siempre lista para una buena charla. ¿Y tú, cómo te encuentras hoy? [f01] [idle]";
 
-const result1 = cleanTextAndGetRemovedValues(textoOriginal1);
-const result2 = cleanTextAndGetRemovedValues(textoOriginal2);
+// Función auxiliar para validar si un texto tiene expresiones completas
+function hasCompleteExpressions(text: string): boolean {
+    const incompletePattern = /<[^>]*$|\[[^\]]*$/;
+    return !incompletePattern.test(text);
+}
 
-console.log('Texto original:', textoOriginal1);
-console.log('Texto limpio:', result1.cleanedText);
-console.log('Valores eliminados con detalles:', result1.removedValues);
+// Función auxiliar para detectar expresiones parciales al final del texto
+function getPartialExpression(text: string): string | null {
+    const partialMatch = text.match(/<[^>]*$|\[[^\]]*$/);
+    return partialMatch ? partialMatch[0] : null;
+}
 
-console.log('Texto original:', textoOriginal2);
-console.log('Texto limpio:', result2.cleanedText);
-console.log('Valores eliminados con detalles:', result2.removedValues); */
+export { cleanTextAndGetRemovedValues, hasCompleteExpressions, getPartialExpression };
+
+/* 
+Ejemplos de uso y casos de prueba:
+
+// Caso normal - expresiones completas
+const texto1 = "¡Hola! <happy> ¿Cómo estás? [wave]";
+// Resultado: cleanedText: "¡Hola!  ¿Cómo estás? ", removedValues: [<happy>, [wave]]
+
+// Caso problemático - expresión incompleta
+const texto2 = "¡Hola! <hap";
+// Resultado: cleanedText: "¡Hola! <hap", removedValues: [] (no se procesa)
+
+// Caso mixto
+const texto3 = "Texto normal <happy> más texto [wav";
+// Resultado: cleanedText: "Texto normal <happy> más texto [wav", removedValues: [] (no se procesa por expresión incompleta)
+
+// Caso de chunks que se unen correctamente
+const chunk1 = "Hola <hap";
+const chunk2 = "py> mundo";
+const textoCompleto = chunk1 + chunk2; // "Hola <happy> mundo"
+// Resultado: cleanedText: "Hola  mundo", removedValues: [<happy>]
+*/
