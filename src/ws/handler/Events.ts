@@ -5,6 +5,7 @@ import type { InputEvent,ClientMessage,ErrorPayload,InputEventWs } from '../type
 import { textToSpeech,processAudioChunkToBase64 } from './speechTTS.js';
 import { cleanTextAndGetRemovedValues } from '../../tools/cleantext.js';
 import { getConfig,TTS_Config } from '../../config.js';
+import { getImageFiles } from '../../tools/assets.js';
 async function handleEvents(ws: WebSocket, rawData: RawData) {
           const clientMessage  = parseClientMessage(rawData);
       if (!clientMessage) {
@@ -17,7 +18,9 @@ async function handleEvents(ws: WebSocket, rawData: RawData) {
           console.log(`➡️ Evento "${message.type}" recibido con payload:`, message.text);
           textInput(message,ws);
           break;
-
+        case 'fetch-backgrounds':
+          fetchBackgrounds(ws);
+          break;
         default:
           console.log('❌ Evento desconocido recibido:', clientMessage);
       }
@@ -25,7 +28,7 @@ async function handleEvents(ws: WebSocket, rawData: RawData) {
 async function textInput(message:InputEventWs,ws:WebSocket) {
             try {
             if (!message.text) return;
-            const inputEvent: InputEvent = { type: 'text-input', text: message.text };
+            const inputEvent: InputEvent = { type: 'text-input', text: message.text,id:message.id  };
             const startTime = performance.now();
             const streamPayload = await streamResponse(inputEvent);
             const endTime = performance.now();
@@ -51,7 +54,8 @@ async function textInput(message:InputEventWs,ws:WebSocket) {
             }
             memory.addUserMessage(message.text);
             memory.addAIMessage(full_text);
-            console.log("full_text",full_text)
+            console.log("full_text",full_text);
+            sendMessage<InputEventWs>(ws,'complete',message)
           } catch (error: any) {
             console.error(`❌ Error procesando "${message.type}":`, error);
 
@@ -62,5 +66,27 @@ async function textInput(message:InputEventWs,ws:WebSocket) {
               message.requestId
             );
           }
+}
+async function fetchBackgrounds(ws:WebSocket) {
+  sendMessage(ws,'background-files',{
+    files:getImageFiles()
+  })
+}
+console.log("getImageFiles()",getImageFiles())
+// next EVENTIMPLEMENTATIONS
+const newServerEvents = {
+  'text-input': true,
+  'audio':true,
+  'complete':true,//send if event is proccessed
+  'ERROR': true,//send ERRORS
+  'full-text':true,//send full text
+  'fetch-backgrounds': true,
+  'fetch-configs':false,
+  'fetch-history-list':false,
+  'create-new-hits':false,
+}
+const newClientEvents = {
+  'background-files': true,//{files:BackgroundFile[]}
+  'set-model-and-conf':false,//{ conf_name?: string, conf_uid?: string, client_uid?: string, model_info?: ModelInfo }
 }
 export { handleEvents }

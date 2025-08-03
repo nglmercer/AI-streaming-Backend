@@ -1,3 +1,6 @@
+import { DataStorage,JSONFileAdapter } from "json-obj-manager";
+import path from "path";
+const tempPath = path.join(process.cwd(),'temp')
 // src/tools/messageQueue.ts
 // Cola de mensajes para un MCP (usada internamente por characterTools.ts)
 
@@ -8,6 +11,7 @@ export interface Message {
   createdAt: Date;          // Momento de creación
   readAt?: Date;            // Momento en que se marcó como leído (opcional)
 }
+const dataStorage = new DataStorage<Message[]>(new JSONFileAdapter(path.join(tempPath,'data/messages.json')));
 
 /**
  * Clase simple y liviana para gestionar una cola de mensajes FIFO
@@ -29,6 +33,7 @@ export class MessageQueue {
       createdAt: new Date(),
     };
     this.queue.push(newMessage);
+    dataStorage.save('data',this.queue)
     return newMessage;
   }
   getNextUnread(isRed = true): Message | undefined {
@@ -37,6 +42,7 @@ export class MessageQueue {
       msg.isRead = isRed;
       msg.readAt = new Date();
     }
+    dataStorage.save('data',this.queue)
     return msg;
   }
   /**
@@ -50,6 +56,7 @@ export class MessageQueue {
 
     msg.isRead = true;
     msg.readAt = new Date();
+    dataStorage.save('data',this.queue)
     return true;
   }
 
@@ -66,6 +73,7 @@ export class MessageQueue {
         count++;
       }
     });
+    dataStorage.save('data',this.queue)
     return count;
   }
 
@@ -103,6 +111,7 @@ export class MessageQueue {
    */
   clear(): void {
     this.queue.length = 0;
+    dataStorage.save('data',[])
   }
   getAll(isRead?: boolean): Message[] {
     if (typeof isRead === 'boolean'){
@@ -111,7 +120,14 @@ export class MessageQueue {
       return this.queue;
     }
   }
+  async loadBackup(){
+    const data = await dataStorage.load('data')
+    if (data){
+      this.queue = data
+    }
+  }
 }
 
 // Instancia singleton para ser importada en characterTools.ts
 export const messageQueue = new MessageQueue();
+messageQueue.loadBackup();

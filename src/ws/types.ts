@@ -50,5 +50,6 @@ export interface ErrorPayload {
 export interface InputEvent {
   type: 'text-input';
   text: string;
+  id?: string | string[];
 }
 export type InputEventWs = ClientMessage<{ text: string }> & InputEvent;

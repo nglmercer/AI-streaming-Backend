@@ -1,12 +1,15 @@
 import fs from 'fs';
-import path from 'path';
-
+import { cwd } from 'process';
+import path,{ join } from 'path';
+import type { BackgroundFile } from '../ws/handler/ws_model.js';
 /**
  * Gets all image files from a specified directory
  * @param directoryPath The path to the directory to scan
  * @returns Array of image file paths
  */
-export function getImageFiles(directoryPath: string): string[] {
+const BG_dir = join(cwd(), 'src', 'public', 'bg');
+
+export function getImageFiles(directoryPath: string=BG_dir): BackgroundFile[] {
     try {
         // Supported image extensions
         const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
@@ -20,8 +23,13 @@ export function getImageFiles(directoryPath: string): string[] {
             return imageExtensions.includes(extension);
         });
         
-        // Return full paths
-        return imageFiles.map(file => path.join(directoryPath, file));
+        // full paths imageFiles.map(file => path.join(directoryPath, file)),
+        return imageFiles.map(file => {
+            return {
+                name:file.split('.')[0],
+                url:`/bg/${file}`,
+            }
+        })
     } catch (error) {
         console.error('Error reading directory:', error);
         return [];

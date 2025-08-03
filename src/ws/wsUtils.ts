@@ -44,7 +44,7 @@ export function parseClientMessage(message: RawData, valid = true): ClientMessag
  * @param inReplyTo (Opcional) El ID de la petición del cliente a la que se responde.
  * @param extend (Opcional) Si es `true`, el payload se extiende en el objeto raíz.
  */
-export function sendMessage<T extends Record<string, unknown> = Record<string, unknown>>(
+export function sendMessage<T extends Record<string, unknown | any> = Record<string, unknown | any>>(
   ws: WebSocket,
   event: string,
   payload: T | string,
