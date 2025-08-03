@@ -89,9 +89,7 @@ async function processCompleteTextWithExpressions(completeText: string, ws: WebS
   
   try {
     // Limpiar el texto y obtener las expresiones
-    const { cleanedText, removedValues } = await cleanTextAndGetRemovedValues(completeText);
-    console.log("cleanedText", { cleanedText, removedValues });
-    
+    const { cleanedText, removedValues } = await cleanTextAndGetRemovedValues(completeText);    
     // CAMBIO PRINCIPAL: Procesar audio y expresiones como una unidad
     if (cleanedText.trim() || removedValues.length > 0) {
       let audioData = null;

@@ -19,11 +19,11 @@ async function cleanTextAndGetRemovedValues(text: string): Promise<{ cleanedText
     const allExpressions = await getExpressions(defaultModel);
     const allMotions = await getMotions(defaultModel);
    
-    // Verificar si hay expresiones o movimientos incompletos
+    // Verificar si hay expression o movimientos incompletos
     const incompletePattern = /<[^>]*$|\[[^\]]*$/;
     if (incompletePattern.test(text)) {
-        console.warn('Texto contiene expresiones incompletas:', text);
-        // Retornar el texto sin procesar si hay expresiones incompletas
+        console.warn('Texto contiene expression incompletas:', text);
+        // Retornar el texto sin procesar si hay expression incompletas
         return { cleanedText: text, removedValues: [] };
     }
    
@@ -63,28 +63,27 @@ async function cleanTextAndGetRemovedValues(text: string): Promise<{ cleanedText
     // Limpiar espacios extra que puedan haber quedado
     const finalCleanedText = cleanedText.replace(/\s+/g, ' ').trim();
     
-    // MEJORA: Mejor logging para debug
-    if (removedValues.length > 0) {
-        console.log(`Procesando ${removedValues.length} expresiones:`, 
+/*     if (removedValues.length > 0) {
+        console.log(`Proccess ${removedValues.length} expression:`, 
                    removedValues.map(rv => `${rv.type}: ${rv.cleanValue}`));
-    }
+    } */
     
     return { cleanedText: finalCleanedText, removedValues };
 }
 
-// Función auxiliar para validar si un texto tiene expresiones completas
+// Función auxiliar para validar si un texto tiene expression completas
 function hasCompleteExpressions(text: string): boolean {
     const incompletePattern = /<[^>]*$|\[[^\]]*$/;
     return !incompletePattern.test(text);
 }
 
-// Función auxiliar para detectar expresiones parciales al final del texto
+// Función auxiliar para detectar expression parciales al final del texto
 function getPartialExpression(text: string): string | null {
     const partialMatch = text.match(/<[^>]*$|\[[^\]]*$/);
     return partialMatch ? partialMatch[0] : null;
 }
 
-// NUEVA: Función para verificar si un chunk tiene solo expresiones
+// NUEVA: Función para verificar si un chunk tiene solo expression
 function isExpressionOnly(text: string): boolean {
     const withoutExpressions = text.replace(/<[^>]*>|\[[^\]]*\]/g, '').trim();
     const hasExpressions = /<[^>]*>|\[[^\]]*\]/.test(text);
