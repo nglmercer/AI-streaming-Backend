@@ -1,4 +1,5 @@
-import { DataStorage,JSONFileAdapter } from "json-obj-manager";
+import { DataStorage } from "json-obj-manager";
+import { JSONFile } from "json-obj-manager/node";
 import path from "path";
 const tempPath = path.join(process.cwd(),'temp')
 // src/tools/messageQueue.ts
@@ -11,7 +12,7 @@ export interface Message {
   createdAt: Date;          // Momento de creación
   readAt?: Date;            // Momento en que se marcó como leído (opcional)
 }
-const dataStorage = new DataStorage<Message[]>(new JSONFileAdapter(path.join(tempPath,'data/messages.json')));
+const dataStorage = new DataStorage<Message[]>(new JSONFile(path.join(tempPath,'data/messages.json')));
 
 /**
  * Clase simple y liviana para gestionar una cola de mensajes FIFO

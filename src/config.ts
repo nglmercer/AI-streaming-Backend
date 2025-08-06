@@ -1,14 +1,16 @@
-import { DataStorage, JSONFile } from 'json-obj-manager';
+import { DataStorage } from 'json-obj-manager';
+import { JSONFile } from 'json-obj-manager/node';
+import { Emitter }from 'json-obj-manager';
+
 import { providerKeys, type ProviderType } from './ai/factory.js';
 import { EdgeTTS,type SynthesisOptions } from "edge-tts-fork";
-import { Emitter }from 'json-obj-manager'
 import path, { format } from 'path';
 
 export const emitterConfig = new Emitter();
 const configPath = path.join(process.cwd(), 'temp', 'config.json');
 const storage = new DataStorage<DefaultConfig>(new JSONFile(configPath),emitterConfig);
 
-emitterConfig.on('change',(config)=>{
+emitterConfig.on('change',(config:any)=>{
     console.log('config change',config);
 })
 
