@@ -16,7 +16,7 @@ import {
   type DeepSeekProviderSettings,
 } from '@ai-sdk/deepseek';
 import { createMistral,type MistralProviderSettings } from '@ai-sdk/mistral';
-import { type LanguageModel,type LanguageModelV1 } from 'ai';
+import { type LanguageModel } from 'ai';
 import { type ModelConfig } from './config.js';
 import { emitterConfig } from '../config.js';
 // Mapeo de strings a las funciones creadoras de proveedores
@@ -90,7 +90,7 @@ export function buildModel({
   // ------------------------------------
 
   // 3. Guárdala en el caché para futuros usos
-  modelInstances.set(cacheKey, newModelInstance as LanguageModelV1);
+  modelInstances.set(cacheKey, newModelInstance as LanguageModel);
 
-  return newModelInstance as LanguageModelV1;
+  return newModelInstance as LanguageModel;
 }

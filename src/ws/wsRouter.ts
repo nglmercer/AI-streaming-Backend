@@ -12,7 +12,10 @@ export default function createWsRouter(httpServer: HttpServer) {
 
   wss.on('connection', (ws: WebSocket) => {
     emitterConfig.on('ERROR', (data: any) => {
+      console.log("sendERROR",data);
+
       ws.send(JSON.stringify({
+        type: 'ERROR',
         event: 'ERROR',
         data
       }))

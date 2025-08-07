@@ -68,7 +68,7 @@ export async function getCharacterTools() {
 
         getNextMessage: tool({
             description: 'get messages and read the next message.',
-            parameters: z.object({}), // Sin parámetros
+            inputSchema: z.object({}), // Sin parámetros
             execute: async () => {
                 const allmsgs = messageQueue.getAll();
                 const msgs = allmsgs.map((a)=>({

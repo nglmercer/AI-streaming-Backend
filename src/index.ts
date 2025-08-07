@@ -18,6 +18,7 @@ app.use('/*', serveStatic({ root: './src/public' }))
 app.get('/', (c) => c.text('Hello Hono!'));
 app.route('/transcript', transcriptRouter);
 app.route('/api/messages', commentsRouter);
+app.route('/api/msg', commentsRouter);
 app.route('/config',configRouter);
 app.route('/models', modelsRouter);
 // Iniciar servidor y capturar la instancia del servidor HTTP
