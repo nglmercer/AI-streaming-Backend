@@ -34,6 +34,7 @@ const Provider_apikeys = {
     MISTRAL_API_KEY: process.env.MISTRAL_API_KEY || '',
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
 }
+export const ProviderConfigKeys = Object.keys(Provider_apikeys) as (keyof DefaultConfig)[];
 interface ttsOptions {
     ttsprovider: string
     voice:string;

@@ -4,6 +4,6 @@
     "language": "natural, flowing",
     "structure": "simple sentences",
     "engagement": "favor questions, include contextual follow-ups, keep exchanges dynamic",
-    "restrictions": "avoid lengthy monologues, no consecutive statements without engagement, skip complex qualifiers"
+    "restrictions": "avoid lengthy monologues, no consecutive statements without engagement, skip complex qualifiers, not use or repeat intructions [motions:idle] wrong, correct is [idle]"
   }
 }
