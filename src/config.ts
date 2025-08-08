@@ -11,7 +11,7 @@ const configPath = path.join(process.cwd(), 'temp', 'config.json');
 const storage = new DataStorage<DefaultConfig>(new JSONFile(configPath),emitterConfig);
 
 emitterConfig.on('change',(config:any)=>{
-    console.log('config change',config);
+    //console.log('config change',config);
 })
 
 export interface DefaultConfig {
@@ -25,6 +25,7 @@ export interface DefaultConfig {
     provider: ProviderType;
     model: string;
     model2d: string;
+    charater_AI: string;
 }
 
 const Provider_apikeys = {
@@ -35,6 +36,7 @@ const Provider_apikeys = {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || '',
 }
 export const ProviderConfigKeys = Object.keys(Provider_apikeys) as (keyof DefaultConfig)[];
+console.log("ProviderConfigKeys",ProviderConfigKeys)
 interface ttsOptions {
     ttsprovider: string
     voice:string;
@@ -52,9 +54,11 @@ export const defaultConfig: DefaultConfig = {
     host: 'localhost',
     ...Provider_apikeys,
     provider: 'google',
-     model: process.env.MODEL || 'gemini-2.5-flash',
+    model: process.env.MODEL || 'gemini-2.5-flash',
     model2d: 'shizuku',
+    charater_AI: 'mili'
 };
+export const defaultKEYS = Object.keys(defaultConfig) as (keyof DefaultConfig)[];
 
 // Mapeo de providers a sus respectivas claves de API
 const PROVIDER_TO_API_KEY_MAP: Record<ProviderType, keyof DefaultConfig> = {

@@ -2,7 +2,7 @@ import { type sendInputEvent } from "../ws/handler/ws_model.js";
 import { buildModel } from "./factory.js";
 import { generateText } from 'ai';
 import { streamText } from 'ai';
-import { charactersPrompt } from "../prompts/promptGenerator.js";
+import { getCharacterPrompt } from "../prompts/promptGenerator.js";
 import { InMemoryChatMessageHistory } from "@langchain/core/chat_history";
 import { type BaseMessage } from "@langchain/core/messages";
 import { getAllExpressions,getAllMotions } from '../tools/model-loader.js';
@@ -53,12 +53,15 @@ async function get2dPrompt(Question:string=''):Promise<{system:string,txtprompt:
     const motions = await getAllMotions(config.model2d);
     const history = await memory.getMessages();
     const parsedHistory = JSON.stringify(history);
-    const Prompt = charactersPrompt.lunaPrompt
+    const characterPrompt = getCharacterPrompt(config.charater_AI || 'luna');
+    if (!characterPrompt) sendErrorEvent(config);
+    const Prompt = characterPrompt
         .replace('{AllExpressions}', JSON.stringify(expresions))
         .replace('{AllMotions}', JSON.stringify(motions));
     const apikey = await getApiKey(config.provider)
     if (!apikey || apikey.length === 0)sendErrorEvent(config);
-    return {
+    console.log("get2dPrompt", config,expresions,motions);
+    return { 
         system: Prompt,
         txtprompt: `context: ${parsedHistory}\nquestion:\n${Question}\n`,
         apikey,

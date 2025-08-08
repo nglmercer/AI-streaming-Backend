@@ -7,8 +7,10 @@ import 'dotenv/config'
 import transcriptRouter from './routes/transcript.js';
 import commentsRouter from './routes/comments.js'
 import configRouter from './routes/config.router.js'
+import charactersRouter from './routes/characters.router.js'
 import createWsRouter from './ws/wsRouter.js';
 import modelsRouter from './routes/models.js';
+import AIdataRouter from './routes/ai/models.js'
 import { join } from 'path';
 const port = 12393;
 const app = new Hono();
@@ -19,8 +21,9 @@ app.get('/', (c) => c.text('Hello Hono!'));
 app.route('/transcript', transcriptRouter);
 app.route('/api/messages', commentsRouter);
 app.route('/api/msg', commentsRouter);
-app.route('/api/providers', commentsRouter);
+app.route('/api/providers', AIdataRouter);
 app.route('/config',configRouter);
+app.route('/characters', charactersRouter);
 app.route('/models', modelsRouter);
 // Iniciar servidor y capturar la instancia del servidor HTTP
 const server = serve({
